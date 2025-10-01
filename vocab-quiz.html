@@ -270,7 +270,8 @@
         { en: "to grin", de: ["grinsen"] },
         {
           en: "grin",
-          de: ["das grinsen", "grinsen", "das grinsen (substantiv)"],
+          // Capitalization enforced: nouns capitalized; only correctly capitalized forms retained
+          de: ["das Grinsen", "Grinsen"],
         },
         {
           en: "to introduce sth./sb. (to sb.)",
@@ -294,39 +295,39 @@
           ],
         },
         { en: "beyond", de: ["jenseits", "jenseits von"] },
-        { en: "flag", de: ["die fahne", "die flagge", "fahne", "flagge"] },
+        { en: "flag", de: ["die Fahne", "die Flagge", "Fahne", "Flagge"] },
         {
           en: "to find your way around (a city)",
           de: [
             "sich zurechtfinden",
-            "sich in einer stadt zurechtfinden",
-            "sich (in einer stadt) zurechtfinden",
+            "sich in einer Stadt zurechtfinden",
+            "sich (in einer Stadt) zurechtfinden",
           ],
         },
         { en: "to explore", de: ["erkunden", "erforschen"] },
-        { en: "level", de: ["das niveau", "die ebene", "niveau", "ebene"] },
+        { en: "level", de: ["das Niveau", "die Ebene", "Niveau", "Ebene"] },
         { en: "as if", de: ["als ob", "wie wenn"] },
-        { en: "wonder", de: ["das wunder", "wunder"] },
+        { en: "wonder", de: ["das Wunder", "Wunder"] },
         { en: "central", de: ["zentral", "mittel", "zentral gelegen"] },
         {
           en: "skyline",
-          de: ["die skyline", "der horizont", "skyline", "horizont"],
+          de: ["die Skyline", "der Horizont", "Skyline", "Horizont"],
         },
-        { en: "skyscraper", de: ["der wolkenkratzer", "wolkenkratzer"] },
+        { en: "skyscraper", de: ["der Wolkenkratzer", "Wolkenkratzer"] },
         {
           en: "population",
           de: [
-            "die bevölkerung",
-            "die einwohner",
-            "die einwohnerzahl",
-            "bevölkerung",
-            "einwohner",
-            "einwohnerzahl",
+            "die Bevölkerung",
+            "die Einwohner",
+            "die Einwohnerzahl",
+            "Bevölkerung",
+            "Einwohner",
+            "Einwohnerzahl",
           ],
         },
         { en: "diverse", de: ["vielfältig", "divers"] },
-        { en: "underground", de: ["unterirdisch", "unter grund"] },
-        { en: "network", de: ["das netz", "das netzwerk", "netz", "netzwerk"] },
+        { en: "underground", de: ["unterirdisch", "Untergrund"] },
+        { en: "network", de: ["das Netz", "das Netzwerk", "Netz", "Netzwerk"] },
       ];
 
       const STATE = {
@@ -388,9 +389,16 @@
           acceptableRaw = [entry.en];
           inputAria = "English translation";
         }
-        // Normalization for acceptable answers differs slightly in EN direction (strip leading 'to ')
-        const acceptable = unique(
-          acceptableRaw.map((a) => normalizeEnglishIfNeeded(a))
+        // Store originals (with intended capitalization) and a normalized variant for lenient comparison.
+        // In EN_DE direction we demand EXACT (case-sensitive) match to enforce German noun capitalization.
+        // If only capitalization differs we show a specific hint in German: "Fast richtig – achte auf die Großschreibung!".
+        // Edge cases handled:
+        //  - Multiple spaces trimmed
+        //  - Umlauts/ß normalization only used for lenient detection, not for awarding credit when capitalization wrong
+        //  - User can still reveal solutions to learn proper capitalization
+        const acceptableOriginal = unique(acceptableRaw.map((a) => a.trim()));
+        const acceptableNormalized = acceptableOriginal.map((a) =>
+          normalizeEnglishIfNeeded(a)
         );
         const card = document.createElement("div");
         card.className = "card fade-in";
@@ -418,8 +426,8 @@
         const clearBtn = card.querySelector(`#${id}_clear`);
         const answersList = card.querySelector(`#${id}_answers`);
 
-        // Show all possible correct answers (in alternative direction we still display normalized acceptable list)
-        answersList.innerHTML = acceptable
+        // Show all possible correct answers (display originals with correct capitalization)
+        answersList.innerHTML = acceptableOriginal
           .map((a) => `<span class="answer-chip">${a}</span>`)
           .join("");
 
@@ -427,24 +435,58 @@
 
         function check() {
           if (solved) return; // don't re-score
-          const val = normalizeEnglishIfNeeded(input.value);
-          if (!val) {
+          const rawUser = input.value.trim().replace(/\s+/g, " ");
+          if (!rawUser) {
             status.textContent = "Enter an answer";
             status.className = "answer-status";
             return;
           }
-          if (acceptable.includes(val)) {
-            solved = true;
-            STATE.correct++;
-            updateScore();
-            status.textContent = "Correct";
-            status.className = "answer-status correct";
-            input.disabled = true;
-            btnCheck.disabled = true;
-            input.style.background = "#1f3b2a";
-          } else {
-            status.textContent = "Not quite";
+          const normalizedUser = normalizeEnglishIfNeeded(rawUser);
+
+          if (STATE.direction === "EN_DE") {
+            // Exact match (case sensitive) required for German answers
+            if (acceptableOriginal.includes(rawUser)) {
+              solved = true;
+              STATE.correct++;
+              updateScore();
+              status.textContent = "Correct";
+              status.className = "answer-status correct";
+              input.disabled = true;
+              btnCheck.disabled = true;
+              input.style.background = "#1f3b2a";
+              return;
+            }
+            // Capitalization hint: normalized matches but exact doesn't
+            const hasLenientMatch =
+              acceptableNormalized.includes(normalizedUser);
+            const capitalizationOnly =
+              hasLenientMatch &&
+              acceptableOriginal.some(
+                (a) => a.toLowerCase() === rawUser.toLowerCase()
+              );
+            if (capitalizationOnly) {
+              status.textContent =
+                "Fast richtig – achte auf die Großschreibung!";
+              status.className = "answer-status incorrect";
+              return;
+            }
+            status.textContent = "Nicht richtig";
             status.className = "answer-status incorrect";
+          } else {
+            // DE_EN direction (German prompt → English answer): keep lenient behavior (case-insensitive, allow 'to ' optional)
+            if (acceptableNormalized.includes(normalizedUser)) {
+              solved = true;
+              STATE.correct++;
+              updateScore();
+              status.textContent = "Correct";
+              status.className = "answer-status correct";
+              input.disabled = true;
+              btnCheck.disabled = true;
+              input.style.background = "#1f3b2a";
+            } else {
+              status.textContent = "Not quite";
+              status.className = "answer-status incorrect";
+            }
           }
         }
 
