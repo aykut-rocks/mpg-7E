@@ -5,18 +5,8 @@
     <title>English ↔ German Vocabulary Quiz</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
-      :root {
-        --bg: #0f1115;
-        --panel: #1d232b;
-        --panel-alt: #242c37;
-        --accent: #3d82f6;
-        --accent-accent: #60a5fa;
-        --danger: #dc2626;
-        --ok: #16a34a;
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-        --radius: 10px;
-        --focus: 0 0 0 3px rgba(99, 102, 241, 0.5);
+      /* Fixed dark theme (variables inlined) */
+      body, button, input {
         font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
           Cantarell, Noto Sans, sans-serif;
       }
@@ -25,8 +15,8 @@
       }
       body {
         margin: 0;
-        background: var(--bg);
-        color: var(--text);
+        background: #0f1115;
+        color: #e5e7eb;
         line-height: 1.5;
       }
       h1 {
@@ -44,7 +34,7 @@
       }
       p.subtitle {
         margin: 0.25rem 0 1rem;
-        color: var(--muted);
+        color: #94a3b8;
         font-size: 0.95rem;
       }
       main {
@@ -62,12 +52,12 @@
       button,
       .inline-btn {
         cursor: pointer;
-        background: var(--accent);
+        background: #3d82f6;
         border: none;
         color: #fff;
         font-weight: 500;
         padding: 0.65rem 1.05rem;
-        border-radius: var(--radius);
+        border-radius: 10px;
         font-size: 0.95rem;
         display: inline-flex;
         gap: 0.4rem;
@@ -77,22 +67,22 @@
       }
       button:hover,
       .inline-btn:hover {
-        background: var(--accent-accent);
+        background: #60a5fa;
       }
       button:active {
         transform: translateY(1px);
       }
       button.secondary {
-        background: var(--panel-alt);
-        color: var(--text);
+        background: #242c37;
+        color: #e5e7eb;
       }
       button.secondary:hover {
         background: #324152;
       }
       button.outline {
         background: transparent;
-        box-shadow: inset 0 0 0 2px var(--accent);
-        color: var(--accent-accent);
+        box-shadow: inset 0 0 0 2px #3d82f6;
+        color: #60a5fa;
       }
       button.outline:hover {
         background: rgba(59, 130, 246, 0.15);
@@ -109,10 +99,10 @@
       }
 
       .card {
-        background: var(--panel);
+        background: #1d232b;
         border: 1px solid #2b3642;
         padding: 0.9rem 0.95rem 1rem;
-        border-radius: var(--radius);
+        border-radius: 10px;
         position: relative;
         display: flex;
         flex-direction: column;
@@ -127,14 +117,14 @@
       }
       .prompt {
         font-weight: 500;
-        color: var(--accent-accent);
+        color: #60a5fa;
       }
       .question-meta {
         font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         font-weight: 600;
-        color: var(--muted);
+        color: #94a3b8;
       }
       .input-row {
         display: flex;
@@ -143,17 +133,17 @@
       }
       .input-row input {
         flex: 1;
-        background: var(--panel-alt);
+        background: #242c37;
         border: 1px solid #324152;
         padding: 0.55rem 0.7rem;
-        color: var(--text);
+        color: #e5e7eb;
         border-radius: 7px;
         font-size: 0.95rem;
       }
       .input-row input:focus {
         outline: none;
-        box-shadow: var(--focus);
-        border-color: var(--accent-accent);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5);
+        border-color: #60a5fa;
       }
       .answer-status {
         min-height: 1.1rem;
@@ -161,10 +151,10 @@
         font-weight: 500;
       }
       .answer-status.correct {
-        color: var(--ok);
+        color: #16a34a;
       }
       .answer-status.incorrect {
-        color: var(--danger);
+        color: #dc2626;
       }
 
       .answer-list {
@@ -177,8 +167,11 @@
       }
       .answer-chip {
         background: #2f3b47;
-        padding: 0.25rem 0.5rem;
+        color: #e5e7eb;
+        padding: 0.25rem 0.55rem;
         border-radius: 100px;
+        border: 1px solid #3b4855;
+        font-weight: 500;
       }
       .small-btn {
         font-size: 0.65rem;
@@ -196,7 +189,7 @@
       footer {
         margin: 2.5rem 0 4rem;
         text-align: center;
-        color: var(--muted);
+        color: #94a3b8;
         font-size: 0.75rem;
       }
 
@@ -239,9 +232,6 @@
         </button>
         <button id="revealAllBtn" class="outline" title="Reveal all solutions">
           Reveal All
-        </button>
-        <button id="themeBtn" class="secondary" title="Toggle light/dark theme">
-          Theme
         </button>
         <button
           id="directionBtn"
@@ -505,7 +495,17 @@
         });
 
         clearBtn.addEventListener("click", () => {
-          if (solved) return; // cannot clear after solved
+          // Allow clearing even after solved; if it was solved, rollback score & state so user can retry.
+          if (solved) {
+            solved = false;
+            if (STATE.correct > 0) {
+              STATE.correct--;
+              updateScore();
+            }
+            input.disabled = false;
+            btnCheck.disabled = false;
+            input.style.background = "#242c37";
+          }
           input.value = "";
           status.textContent = "";
           status.className = "answer-status";
@@ -520,7 +520,7 @@
             input.value = "";
             status.textContent = "";
             status.className = "answer-status";
-            input.style.background = "var(--panel-alt)";
+            input.style.background = "#242c37";
             if (!answersList.classList.contains("hidden"))
               answersList.classList.add("hidden");
             revealBtn.textContent = "Show";
@@ -592,31 +592,7 @@
       }
       updateDirectionUI();
 
-      // Theme toggle (light/dark)
-      const themeBtn = document.getElementById("themeBtn");
-      let dark = true;
-      function applyTheme() {
-        if (dark) {
-          document.documentElement.style.setProperty("--bg", "#0f1115");
-          document.documentElement.style.setProperty("--panel", "#1d232b");
-          document.documentElement.style.setProperty("--panel-alt", "#242c37");
-          document.documentElement.style.setProperty("--text", "#e5e7eb");
-          document.documentElement.style.setProperty("--muted", "#94a3b8");
-          themeBtn.textContent = "Light";
-        } else {
-          document.documentElement.style.setProperty("--bg", "#f5f7fa");
-          document.documentElement.style.setProperty("--panel", "#ffffff");
-          document.documentElement.style.setProperty("--panel-alt", "#eef2f7");
-          document.documentElement.style.setProperty("--text", "#1f2937");
-          document.documentElement.style.setProperty("--muted", "#6b7280");
-          themeBtn.textContent = "Dark";
-        }
-      }
-      applyTheme();
-      themeBtn.addEventListener("click", () => {
-        dark = !dark;
-        applyTheme();
-      });
+      // Theme toggle removed – fixed dark theme retained.
 
       // Accessibility: Focus first input
       setTimeout(() => {
