@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>English ↔ German Vocabulary Quiz</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #1d232b;
+        --panel-alt: #242c37;
+        --accent: #3d82f6;
+        --accent-accent: #60a5fa;
+        --danger: #dc2626;
+        --ok: #16a34a;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --radius: 10px;
+        --focus: 0 0 0 3px rgba(99, 102, 241, 0.5);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
+          Cantarell, Noto Sans, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+      h1 {
+        font-weight: 600;
+        margin: 0 0 0.25rem;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+      }
+      header {
+        padding: 1.25rem clamp(1rem, 3vw, 2rem);
+        background: linear-gradient(135deg, #1f2933, #111827 60%);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.55);
+      }
+      p.subtitle {
+        margin: 0.25rem 0 1rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.5rem clamp(1rem, 3vw, 2rem) 4rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin: 0 0 1.25rem;
+      }
+      button,
+      .inline-btn {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        font-weight: 500;
+        padding: 0.65rem 1.05rem;
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+        letter-spacing: 0.25px;
+        transition: 0.18s background, 0.18s transform;
+      }
+      button:hover,
+      .inline-btn:hover {
+        background: var(--accent-accent);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button.secondary {
+        background: var(--panel-alt);
+        color: var(--text);
+      }
+      button.secondary:hover {
+        background: #324152;
+      }
+      button.outline {
+        background: transparent;
+        box-shadow: inset 0 0 0 2px var(--accent);
+        color: var(--accent-accent);
+      }
+      button.outline:hover {
+        background: rgba(59, 130, 246, 0.15);
+      }
+
+      .grid {
+        display: grid;
+        gap: 1rem;
+      }
+      @media (min-width: 900px) {
+        .grid {
+          grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+        }
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid #2b3642;
+        padding: 0.9rem 0.95rem 1rem;
+        border-radius: var(--radius);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        min-height: 180px;
+      }
+      .card h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      .prompt {
+        font-weight: 500;
+        color: var(--accent-accent);
+      }
+      .question-meta {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .input-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .input-row input {
+        flex: 1;
+        background: var(--panel-alt);
+        border: 1px solid #324152;
+        padding: 0.55rem 0.7rem;
+        color: var(--text);
+        border-radius: 7px;
+        font-size: 0.95rem;
+      }
+      .input-row input:focus {
+        outline: none;
+        box-shadow: var(--focus);
+        border-color: var(--accent-accent);
+      }
+      .answer-status {
+        min-height: 1.1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+      .answer-status.correct {
+        color: var(--ok);
+      }
+      .answer-status.incorrect {
+        color: var(--danger);
+      }
+
+      .answer-list {
+        font-size: 0.7rem;
+        line-height: 1.25;
+        opacity: 0.9;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 0.6rem;
+      }
+      .answer-chip {
+        background: #2f3b47;
+        padding: 0.25rem 0.5rem;
+        border-radius: 100px;
+      }
+      .small-btn {
+        font-size: 0.65rem;
+        padding: 0.35rem 0.55rem;
+        background: #324152;
+      }
+      .small-btn:hover {
+        background: #3d4d5d;
+      }
+
+      .score {
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      footer {
+        margin: 2.5rem 0 4rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .fade-in {
+        animation: fade 0.35s ease;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>English → German Vocabulary Quiz</h1>
+      <p class="subtitle">
+        Type the German translation(s). Multiple German answers are accepted;
+        order doesn't matter. Press Enter or click Check.
+      </p>
+      <div class="controls">
+        <button id="shuffleBtn" title="Randomize question order">
+          Shuffle
+        </button>
+        <button
+          id="resetBtn"
+          class="secondary"
+          title="Clear all answers & score"
+        >
+          Reset
+        </button>
+        <button id="revealAllBtn" class="outline" title="Reveal all solutions">
+          Reveal All
+        </button>
+        <button id="themeBtn" class="secondary" title="Toggle light/dark theme">
+          Theme
+        </button>
+        <button
+          id="directionBtn"
+          class="outline"
+          title="Switch quiz direction (EN→DE / DE→EN)"
+        >
+          DE ←→ EN
+        </button>
+        <div class="score" id="scoreBox">Score: 0 / 0</div>
+      </div>
+    </header>
+    <main>
+      <div id="quiz" class="grid" aria-live="polite"></div>
+    </main>
+    <footer>
+      Single-page offline quiz. Refresh or use Reset to start over.
+    </footer>
+    <script>
+      // ================= Dataset =================
+      const DATA = [
+        { en: "north", de: ["nördlich", "Nord"] },
+        { en: "south", de: ["südlich", "Süd"] },
+        { en: "east", de: ["östlich", "Ost"] },
+        { en: "west", de: ["westlich", "West"] },
+        { en: "creative", de: ["kreativ"] },
+        { en: "to grin", de: ["grinsen"] },
+        {
+          en: "grin",
+          de: ["das grinsen", "grinsen", "das grinsen (substantiv)"],
+        },
+        {
+          en: "to introduce sth./sb. (to sb.)",
+          de: [
+            "etwas vorstellen",
+            "jm. etwas vorstellen",
+            "jn. vorstellen",
+            "jemanden vorstellen",
+            "etwas / jn. (jm.) vorstellen",
+            "jemandem etwas vorstellen",
+          ],
+        },
+        { en: "to squeeze", de: ["drücken", "quetschen", "zusammendrücken"] },
+        {
+          en: "to owe sb. sth.",
+          de: [
+            "jm. etwas schulden",
+            "jm. etwas schuldig sein",
+            "jemandem etwas schulden",
+            "jemandem etwas schuldig sein",
+          ],
+        },
+        { en: "beyond", de: ["jenseits", "jenseits von"] },
+        { en: "flag", de: ["die fahne", "die flagge", "fahne", "flagge"] },
+        {
+          en: "to find your way around (a city)",
+          de: [
+            "sich zurechtfinden",
+            "sich in einer stadt zurechtfinden",
+            "sich (in einer stadt) zurechtfinden",
+          ],
+        },
+        { en: "to explore", de: ["erkunden", "erforschen"] },
+        { en: "level", de: ["das niveau", "die ebene", "niveau", "ebene"] },
+        { en: "as if", de: ["als ob", "wie wenn"] },
+        { en: "wonder", de: ["das wunder", "wunder"] },
+        { en: "central", de: ["zentral", "mittel", "zentral gelegen"] },
+        {
+          en: "skyline",
+          de: ["die skyline", "der horizont", "skyline", "horizont"],
+        },
+        { en: "skyscraper", de: ["der wolkenkratzer", "wolkenkratzer"] },
+        {
+          en: "population",
+          de: [
+            "die bevölkerung",
+            "die einwohner",
+            "die einwohnerzahl",
+            "bevölkerung",
+            "einwohner",
+            "einwohnerzahl",
+          ],
+        },
+        { en: "diverse", de: ["vielfältig", "divers"] },
+        { en: "underground", de: ["unterirdisch", "unter grund"] },
+        { en: "network", de: ["das netz", "das netzwerk", "netz", "netzwerk"] },
+      ];
+
+      const STATE = {
+        correct: 0,
+        total: DATA.length,
+        direction: "EN_DE", // EN_DE or DE_EN
+      };
+
+      // ============== Utility Functions ==============
+      const normalize = (s) =>
+        s
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, " ")
+          .replace(/[()]/g, "")
+          .replace(/\betw\.?\b/g, "etwas")
+          .replace(/\bjn?\.?\b/g, "jemanden")
+          .replace(/\bjm\.?\b/g, "jemandem")
+          .replace(/ä/g, "ae")
+          .replace(/ö/g, "oe")
+          .replace(/ü/g, "ue")
+          .replace(/ß/g, "ss");
+
+      function unique(arr) {
+        return [...new Set(arr)];
+      }
+
+      function updateScore() {
+        const pct = STATE.total
+          ? Math.round((STATE.correct / STATE.total) * 100)
+          : 0;
+        document.getElementById(
+          "scoreBox"
+        ).textContent = `Score: ${STATE.correct} / ${STATE.total} (${pct}%)`;
+      }
+
+      function shuffleInPlace(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      // ============== Rendering ==============
+      const quizEl = document.getElementById("quiz");
+
+      function buildCard(entry, index) {
+        const id = `q_${index}`;
+        let prompt, acceptableRaw, inputAria;
+        if (STATE.direction === "EN_DE") {
+          prompt = entry.en;
+          acceptableRaw = entry.de;
+          inputAria = "German translation";
+        } else {
+          // DE_EN
+          // Choose a primary German prompt (first provided) & show others as accepted (still solutions list)
+          prompt = entry.de[0];
+          acceptableRaw = [entry.en];
+          inputAria = "English translation";
+        }
+        // Normalization for acceptable answers differs slightly in EN direction (strip leading 'to ')
+        const acceptable = unique(
+          acceptableRaw.map((a) => normalizeEnglishIfNeeded(a))
+        );
+        const card = document.createElement("div");
+        card.className = "card fade-in";
+        card.innerHTML = `
+      <div class="question-meta">#${index + 1}</div>
+      <h2 class="prompt" data-original="${prompt}">${prompt}</h2>
+      <div class="input-row">
+        <input type="text" id="${id}_input" aria-label="${inputAria}" autocomplete="off" />
+        <button class="small-btn" id="${id}_check" title="Check answer">Check</button>
+      </div>
+      <div class="answer-status" id="${id}_status"></div>
+      <div class="actions" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+        <button class="small-btn" id="${id}_reveal" title="Show solution(s)">Show</button>
+        <button class="small-btn" id="${id}_clear" title="Clear input">Clear</button>
+      </div>
+      <div class="answer-list hidden" id="${id}_answers" aria-hidden="true"></div>
+    `;
+
+        quizEl.appendChild(card);
+
+        const input = card.querySelector(`#${id}_input`);
+        const btnCheck = card.querySelector(`#${id}_check`);
+        const status = card.querySelector(`#${id}_status`);
+        const revealBtn = card.querySelector(`#${id}_reveal`);
+        const clearBtn = card.querySelector(`#${id}_clear`);
+        const answersList = card.querySelector(`#${id}_answers`);
+
+        // Show all possible correct answers (in alternative direction we still display normalized acceptable list)
+        answersList.innerHTML = acceptable
+          .map((a) => `<span class="answer-chip">${a}</span>`)
+          .join("");
+
+        let solved = false;
+
+        function check() {
+          if (solved) return; // don't re-score
+          const val = normalizeEnglishIfNeeded(input.value);
+          if (!val) {
+            status.textContent = "Enter an answer";
+            status.className = "answer-status";
+            return;
+          }
+          if (acceptable.includes(val)) {
+            solved = true;
+            STATE.correct++;
+            updateScore();
+            status.textContent = "Correct";
+            status.className = "answer-status correct";
+            input.disabled = true;
+            btnCheck.disabled = true;
+            input.style.background = "#1f3b2a";
+          } else {
+            status.textContent = "Not quite";
+            status.className = "answer-status incorrect";
+          }
+        }
+
+        btnCheck.addEventListener("click", check);
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            check();
+          }
+        });
+
+        revealBtn.addEventListener("click", () => {
+          answersList.classList.toggle("hidden");
+          const hidden = answersList.classList.contains("hidden");
+          revealBtn.textContent = hidden ? "Show" : "Hide";
+          answersList.setAttribute("aria-hidden", hidden ? "true" : "false");
+        });
+
+        clearBtn.addEventListener("click", () => {
+          if (solved) return; // cannot clear after solved
+          input.value = "";
+          status.textContent = "";
+          status.className = "answer-status";
+          input.focus();
+        });
+
+        return {
+          reset() {
+            solved = false;
+            input.disabled = false;
+            btnCheck.disabled = false;
+            input.value = "";
+            status.textContent = "";
+            status.className = "answer-status";
+            input.style.background = "var(--panel-alt)";
+            if (!answersList.classList.contains("hidden"))
+              answersList.classList.add("hidden");
+            revealBtn.textContent = "Show";
+          },
+        };
+      }
+
+      let cardControllers = [];
+
+      function render(all) {
+        quizEl.innerHTML = "";
+        cardControllers = all.map(buildCard);
+        STATE.correct = 0;
+        STATE.total = all.length;
+        updateScore();
+      }
+
+      render(DATA);
+
+      // ============== Global Controls ==============
+      document.getElementById("shuffleBtn").addEventListener("click", () => {
+        const copy = [...DATA];
+        shuffleInPlace(copy);
+        render(copy);
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        // Re-render original order in current direction
+        render(DATA);
+      });
+
+      document.getElementById("revealAllBtn").addEventListener("click", () => {
+        document
+          .querySelectorAll(".answer-list")
+          .forEach((list) => list.classList.remove("hidden"));
+        document.querySelectorAll(".card .small-btn").forEach((btn) => {
+          if (btn.textContent === "Show") btn.textContent = "Hide";
+        });
+      });
+
+      // Direction toggle
+      const directionBtn = document.getElementById("directionBtn");
+      function normalizeEnglishIfNeeded(str) {
+        // For EN answers we also lowercase etc, and strip optional leading 'to '
+        const base = normalize(str).replace(/^to\s+/, "");
+        return base;
+      }
+      directionBtn.addEventListener("click", () => {
+        STATE.direction = STATE.direction === "EN_DE" ? "DE_EN" : "EN_DE";
+        updateDirectionUI();
+        // Re-render using original DATA order
+        render(DATA);
+      });
+
+      function updateDirectionUI() {
+        const title = document.querySelector("header h1");
+        const subtitle = document.querySelector("header .subtitle");
+        if (STATE.direction === "EN_DE") {
+          title.textContent = "English → German Vocabulary Quiz";
+          subtitle.textContent =
+            "Type the German translation(s). Multiple German answers are accepted; order doesn't matter. Press Enter or click Check.";
+          directionBtn.textContent = "DE ←→ EN";
+        } else {
+          title.textContent = "German → English Vocabulary Quiz";
+          subtitle.textContent =
+            "Type the English translation. Strip leading 'to' optional for verbs. Press Enter or click Check.";
+          directionBtn.textContent = "EN ←→ DE";
+        }
+      }
+      updateDirectionUI();
+
+      // Theme toggle (light/dark)
+      const themeBtn = document.getElementById("themeBtn");
+      let dark = true;
+      function applyTheme() {
+        if (dark) {
+          document.documentElement.style.setProperty("--bg", "#0f1115");
+          document.documentElement.style.setProperty("--panel", "#1d232b");
+          document.documentElement.style.setProperty("--panel-alt", "#242c37");
+          document.documentElement.style.setProperty("--text", "#e5e7eb");
+          document.documentElement.style.setProperty("--muted", "#94a3b8");
+          themeBtn.textContent = "Light";
+        } else {
+          document.documentElement.style.setProperty("--bg", "#f5f7fa");
+          document.documentElement.style.setProperty("--panel", "#ffffff");
+          document.documentElement.style.setProperty("--panel-alt", "#eef2f7");
+          document.documentElement.style.setProperty("--text", "#1f2937");
+          document.documentElement.style.setProperty("--muted", "#6b7280");
+          themeBtn.textContent = "Dark";
+        }
+      }
+      applyTheme();
+      themeBtn.addEventListener("click", () => {
+        dark = !dark;
+        applyTheme();
+      });
+
+      // Accessibility: Focus first input
+      setTimeout(() => {
+        const first = document.querySelector(".card input");
+        first && first.focus();
+      }, 50);
+    </script>
+  </body>
+</html>
