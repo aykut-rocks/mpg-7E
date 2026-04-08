@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baderegeln Quiz</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0077b6, #00b4d8, #90e0ef);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .quiz-container {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 700px;
+        width: 100%;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+      }
+      .quiz-container::before {
+        content: "🏊";
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        font-size: 120px;
+        opacity: 0.06;
+        pointer-events: none;
+      }
+      h1 {
+        color: #0077b6;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 1.8em;
+      }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.95em;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        margin-bottom: 25px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0077b6, #00b4d8);
+        border-radius: 4px;
+        transition: width 0.4s ease;
+      }
+      .question-counter {
+        text-align: center;
+        color: #888;
+        font-size: 0.85em;
+        margin-bottom: 15px;
+      }
+      .question-text {
+        font-size: 1.15em;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.5;
+        font-weight: 600;
+      }
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+      .option-btn {
+        padding: 14px 18px;
+        border: 2px solid #ddd;
+        border-radius: 12px;
+        background: #fafafa;
+        cursor: pointer;
+        font-size: 0.95em;
+        text-align: left;
+        transition: all 0.2s ease;
+        color: #333;
+        line-height: 1.4;
+      }
+      .option-btn:hover {
+        border-color: #0077b6;
+        background: #e8f4fd;
+      }
+      .option-btn.selected {
+        border-color: #0077b6;
+        background: #d0ebff;
+        font-weight: 600;
+      }
+      .option-btn.correct {
+        border-color: #2d6a4f;
+        background: #d8f3dc;
+        color: #1b4332;
+      }
+      .option-btn.wrong {
+        border-color: #c1121f;
+        background: #fde8e8;
+        color: #c1121f;
+      }
+      .option-btn:disabled {
+        cursor: default;
+      }
+      .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .btn {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .btn-back {
+        background: #e0e0e0;
+        color: #555;
+      }
+      .btn-back:hover:not(:disabled) {
+        background: #ccc;
+      }
+      .btn-next {
+        background: linear-gradient(135deg, #0077b6, #00b4d8);
+        color: #fff;
+        margin-left: auto;
+      }
+      .btn-next:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 119, 182, 0.4);
+      }
+      .btn-start {
+        background: linear-gradient(135deg, #0077b6, #00b4d8);
+        color: #fff;
+        padding: 16px 40px;
+        font-size: 1.2em;
+        display: block;
+        margin: 0 auto;
+      }
+      .btn-start:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 119, 182, 0.4);
+      }
+      .start-screen,
+      .result-screen {
+        text-align: center;
+      }
+      .start-screen p {
+        color: #555;
+        margin-bottom: 30px;
+        font-size: 1.05em;
+        line-height: 1.6;
+      }
+      .start-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+      }
+      .result-icon {
+        font-size: 80px;
+        margin-bottom: 15px;
+      }
+      .result-score {
+        font-size: 3em;
+        font-weight: 800;
+        color: #0077b6;
+        margin-bottom: 5px;
+      }
+      .result-label {
+        color: #888;
+        margin-bottom: 10px;
+      }
+      .result-message {
+        font-size: 1.15em;
+        color: #333;
+        margin-bottom: 30px;
+        line-height: 1.5;
+      }
+      .result-details {
+        text-align: left;
+        margin-bottom: 30px;
+      }
+      .result-item {
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-size: 0.9em;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        line-height: 1.4;
+      }
+      .result-item.correct {
+        background: #d8f3dc;
+        color: #1b4332;
+      }
+      .result-item.wrong {
+        background: #fde8e8;
+        color: #c1121f;
+      }
+      .result-item .icon {
+        flex-shrink: 0;
+        font-size: 1.1em;
+      }
+      .feedback {
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 0.9em;
+        line-height: 1.5;
+      }
+      .feedback.correct {
+        background: #d8f3dc;
+        color: #1b4332;
+      }
+      .feedback.wrong {
+        background: #fde8e8;
+        color: #c1121f;
+      }
+      @media (max-width: 500px) {
+        .quiz-container {
+          padding: 24px 18px;
+        }
+        h1 {
+          font-size: 1.4em;
+        }
+        .question-text {
+          font-size: 1em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quiz-container" id="quiz">
+      <!-- Start Screen -->
+      <div id="start-screen" class="start-screen">
+        <div class="start-icon">🏖️</div>
+        <h1>Baderegeln Quiz</h1>
+        <p>
+          Teste dein Wissen über die 16 wichtigsten Baderegeln!<br />
+          Wähle bei jeder Frage die richtige Antwort aus.
+        </p>
+        <button class="btn btn-start" onclick="startQuiz()">
+          Quiz starten 🚀
+        </button>
+      </div>
+
+      <!-- Question Screen -->
+      <div id="question-screen" style="display: none">
+        <h1>Baderegeln Quiz</h1>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress"></div>
+        </div>
+        <div class="question-counter" id="counter"></div>
+        <div class="question-text" id="question"></div>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback" style="display: none"></div>
+        <div class="nav-buttons">
+          <button class="btn btn-back" id="btn-back" onclick="goBack()">
+            ← Zurück
+          </button>
+          <button class="btn btn-next" id="btn-next" onclick="goNext()">
+            Weiter →
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Screen -->
+      <div id="result-screen" class="result-screen" style="display: none"></div>
+    </div>
+
+    <script>
+      const questions = [
+        {
+          q: "Was sollst du beachten, bevor du baden gehst?",
+          options: [
+            "Immer direkt nach dem Essen ins Wasser springen",
+            "Geh niemals mit vollem oder ganz leerem Bauch baden",
+            "Vorher möglichst viel essen, um Energie zu haben",
+            "Der Magen spielt beim Baden keine Rolle",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Wann solltest du baden gehen?",
+          options: [
+            "Auch wenn du dich unwohl fühlst – Bewegung hilft",
+            "Nur wenn das Wetter perfekt ist",
+            "Geh nur baden, wenn du dich wohlfühlst",
+            "Egal wie du dich fühlst, Schwimmen ist immer gut",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was sollst du tun, bevor du ins Wasser gehst?",
+          options: [
+            "Sofort hineinspringen, um keinen Schock zu bekommen",
+            "Mindestens 30 Minuten in der Sonne aufwärmen",
+            "Kühl dich ab, ehe du ins Wasser gehst",
+            "Erst einmal am Beckenrand sitzen und warten",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was machst du, wenn du im Wasser frierst?",
+          options: [
+            "Weiter schwimmen, um warm zu werden",
+            "Verlass das Wasser sofort, zieh die nasse Badebekleidung aus und trockne dich ab",
+            "Schneller schwimmen, dann wird dir wieder warm",
+            "Einfach abwarten, das Frieren hört von selbst auf",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Wie tief darf ein Nichtschwimmer ins Wasser gehen?",
+          options: [
+            "Bis zum Hals",
+            "Bis zu den Knien",
+            "Gar nicht ins Wasser",
+            "Nur bis zum Bauch",
+          ],
+          correct: 3,
+        },
+        {
+          q: "Wann darfst du ins Wasser springen?",
+          options: [
+            "Jederzeit, Springen macht Spaß",
+            "Nur vom 3-Meter-Brett",
+            "Nur wenn das Wasser tief genug und frei ist – unbekannte Gewässer bergen Gefahren",
+            "Nur wenn ein Rettungsschwimmer zusieht",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Welche Gewässer sollst du meiden?",
+          options: [
+            "Gewässer mit klarem Wasser",
+            "Sumpfige und pflanzendurchwachsene Gewässer",
+            "Schwimmbäder mit Chlor",
+            "Gewässer, die wärmer als 20°C sind",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Wo darfst du nicht baden?",
+          options: [
+            "In Seen",
+            "In Freibädern",
+            "Dort, wo Schiffe oder Boote fahren",
+            "In Flüssen mit Strömung unter 1 km/h",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was gilt bei Gewitter?",
+          options: [
+            "Man kann ruhig weiterbaden, wenn man im flachen Wasser bleibt",
+            "Gewitter ist nur an Land gefährlich",
+            "Bei Gewitter ist Baden lebensgefährlich – verlass das Wasser sofort",
+            "Man sollte sich im Wasser flach hinlegen",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was gilt für Luftmatratzen, Autoschläuche und Gummitiere im Wasser?",
+          options: [
+            "Sie sind sichere Schwimmhilfen",
+            "Sie sind nur für Erwachsene gedacht",
+            "Sie bieten im Wasser keine Sicherheit",
+            "Sie dürfen nur im Meer benutzt werden",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was sollst du beim Schwimmen in Bezug auf deine Kraft beachten?",
+          options: [
+            "Immer an die eigenen Grenzen gehen",
+            "Überschätz deine Kraft und dein Können nicht – beachte die besonderen Gefahren beim Baden im Meer",
+            "Im Meer ist Schwimmen einfacher als im Pool",
+            "Mit genug Willen schafft man alles",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Wie sollst du dich gegenüber anderen Badenden verhalten?",
+          options: [
+            "Wer schneller schwimmt, hat Vorfahrt",
+            "Andere untertauchen ist ein lustiger Spaß",
+            "Nimm Rücksicht auf andere Badende und tauch andere nicht unter",
+            "Im Schwimmbad gilt das Recht des Stärkeren",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was gilt in Bezug auf das Wasser und die Umgebung?",
+          options: [
+            "Ein bisschen Müll macht nichts",
+            "Verunreinige das Wasser und die Umgebung nicht",
+            "Abfälle kann man im See entsorgen",
+            "Nur Glasflaschen dürfen nicht ins Wasser",
+          ],
+          correct: 1,
+        },
+        {
+          q: "Was sollst du in Bezug auf die Sonne beachten?",
+          options: [
+            "In der Sonne kann man nicht zu lange bleiben",
+            "Sonnenbrand stärkt die Haut",
+            "Bleib nicht zu lange in der Sonne",
+            "Nur Kinder müssen auf die Sonne achten",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Wann darfst du um Hilfe rufen?",
+          options: [
+            "Immer, wenn man Aufmerksamkeit möchte",
+            "Nur zum Spaß, um zu sehen, ob jemand kommt",
+            "Ruf nie um Hilfe, wenn du nicht in Gefahr bist – aber hilf anderen oder hol einen Erwachsenen",
+            "Hilfe rufen ist peinlich und sollte vermieden werden",
+          ],
+          correct: 2,
+        },
+        {
+          q: "Was bedeuten die Flaggen am Strand?",
+          options: [
+            "Rot/gelbe Flagge = Baden verboten, rote Flagge = Baden erlaubt",
+            "Die Flaggen sind nur Dekoration",
+            "Geh nur baden, wenn die rot/gelbe Flagge weht – bei roter Flagge ist Baden lebensgefährlich",
+            "Rote Flagge bedeutet: nur für gute Schwimmer",
+          ],
+          correct: 2,
+        },
+      ];
+
+      let current = 0;
+      let answers = new Array(questions.length).fill(null);
+      let answered = new Array(questions.length).fill(false);
+
+      function startQuiz() {
+        document.getElementById("start-screen").style.display = "none";
+        document.getElementById("question-screen").style.display = "block";
+        showQuestion();
+      }
+
+      function showQuestion() {
+        const q = questions[current];
+        document.getElementById("counter").textContent = `Frage ${
+          current + 1
+        } von ${questions.length}`;
+        document.getElementById("progress").style.width =
+          ((current + 1) / questions.length) * 100 + "%";
+        document.getElementById("question").textContent = q.q;
+
+        const optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+
+        q.options.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = opt;
+          btn.onclick = () => selectAnswer(i);
+
+          if (answered[current]) {
+            btn.disabled = true;
+            if (i === q.correct) {
+              btn.classList.add("correct");
+            } else if (
+              i === answers[current] &&
+              answers[current] !== q.correct
+            ) {
+              btn.classList.add("wrong");
+            }
+            if (i === answers[current]) {
+              btn.classList.add("selected");
+            }
+          }
+
+          optionsDiv.appendChild(btn);
+        });
+
+        // Feedback
+        const feedback = document.getElementById("feedback");
+        if (answered[current]) {
+          feedback.style.display = "block";
+          if (answers[current] === q.correct) {
+            feedback.className = "feedback correct";
+            feedback.textContent = "✅ Richtig! Gut gemacht!";
+          } else {
+            feedback.className = "feedback wrong";
+            feedback.innerHTML =
+              "❌ Leider falsch. Die richtige Antwort ist: <strong>" +
+              q.options[q.correct] +
+              "</strong>";
+          }
+        } else {
+          feedback.style.display = "none";
+        }
+
+        // Nav buttons
+        document.getElementById("btn-back").disabled = current === 0;
+        const nextBtn = document.getElementById("btn-next");
+        if (current === questions.length - 1) {
+          nextBtn.textContent = "Ergebnis anzeigen 🏆";
+        } else {
+          nextBtn.textContent = "Weiter →";
+        }
+        nextBtn.disabled = !answered[current];
+      }
+
+      function selectAnswer(index) {
+        if (answered[current]) return;
+        answers[current] = index;
+        answered[current] = true;
+        showQuestion();
+      }
+
+      function goBack() {
+        if (current > 0) {
+          current--;
+          showQuestion();
+        }
+      }
+
+      function goNext() {
+        if (!answered[current]) return;
+        if (current < questions.length - 1) {
+          current++;
+          showQuestion();
+        } else {
+          showResult();
+        }
+      }
+
+      function showResult() {
+        document.getElementById("question-screen").style.display = "none";
+        const resultDiv = document.getElementById("result-screen");
+        resultDiv.style.display = "block";
+
+        const score = answers.reduce(
+          (sum, a, i) => sum + (a === questions[i].correct ? 1 : 0),
+          0
+        );
+        const percent = Math.round((score / questions.length) * 100);
+
+        let icon, message;
+        if (percent === 100) {
+          icon = "🏆";
+          message = "Perfekt! Du kennst alle Baderegeln!";
+        } else if (percent >= 75) {
+          icon = "🎉";
+          message = "Sehr gut! Du kennst dich prima mit den Baderegeln aus!";
+        } else if (percent >= 50) {
+          icon = "👍";
+          message = "Gut gemacht! Schau dir die falschen Antworten nochmal an.";
+        } else {
+          icon = "📚";
+          message =
+            "Da ist noch Luft nach oben. Lies dir die Baderegeln nochmal durch!";
+        }
+
+        let detailsHtml = "";
+        questions.forEach((q, i) => {
+          const isCorrect = answers[i] === q.correct;
+          detailsHtml += `
+      <div class="result-item ${isCorrect ? "correct" : "wrong"}">
+        <span class="icon">${isCorrect ? "✅" : "❌"}</span>
+        <span><strong>Frage ${i + 1}:</strong> ${q.q}<br>
+        ${
+          isCorrect
+            ? "Deine Antwort: " + q.options[answers[i]]
+            : "Deine Antwort: " +
+              q.options[answers[i]] +
+              "<br>Richtig wäre: " +
+              q.options[q.correct]
+        }</span>
+      </div>`;
+        });
+
+        resultDiv.innerHTML = `
+    <div class="result-icon">${icon}</div>
+    <h1>Dein Ergebnis</h1>
+    <div class="result-score">${score} / ${questions.length}</div>
+    <div class="result-label">${percent}% richtig</div>
+    <div class="result-message">${message}</div>
+    <div class="result-details">${detailsHtml}</div>
+    <button class="btn btn-start" onclick="restartQuiz()">Nochmal spielen 🔄</button>
+  `;
+      }
+
+      function restartQuiz() {
+        current = 0;
+        answers = new Array(questions.length).fill(null);
+        answered = new Array(questions.length).fill(false);
+        document.getElementById("result-screen").style.display = "none";
+        document.getElementById("result-screen").innerHTML = "";
+        document.getElementById("start-screen").style.display = "block";
+      }
+    </script>
+  </body>
+</html>
